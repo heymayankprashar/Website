@@ -11,6 +11,7 @@ export async function student(){
  const token=(await cookies()).get(cookieName)?.value;
  if(!token)return null;
  const email = await env.DB!.prepare("SELECT email FROM sessions WHERE digest=? AND expires>?").bind(await digest(token),Date.now()).first<string>("email");
- return email && mbaAddress.test(email) ? email : null;
+ if(!email || mbaAddress.test(email))return email;
+ return env.DB!.prepare("SELECT principal FROM accounts WHERE principal=?").bind(email).first<string>("principal");
 }
 

@@ -7,3 +7,6 @@ export const deals=sqliteTable("deals",{
 });
 export const invites=sqliteTable("invites",{digest:text().primaryKey(),email:text().notNull(),expires:integer().notNull()});
 export const sessions=sqliteTable("sessions",{digest:text().primaryKey(),email:text().notNull(),expires:integer().notNull()});
+export const accounts=sqliteTable("accounts",{
+ email:text().primaryKey(), principal:text().notNull().unique(), username:text().notNull().unique(), salt:text().notNull(), passwordHash:text().notNull()
+});

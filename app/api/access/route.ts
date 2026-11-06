@@ -4,8 +4,11 @@ import {cookies} from "next/headers";
 import {z} from "zod";
 import {adminEmail,cookieName,digest} from "../../../lib/student-access";
 import {mbaAddress} from "../../../lib/eligibility";
+import {account} from "../../../lib/account";
 const address=z.string().trim().toLowerCase().email().max(254).regex(mbaAddress);
 const schema=z.discriminatedUnion("action",[
+ z.object({action:z.literal("join"),email:address,password:z.string().min(8).max(128)}),
+ z.object({action:z.literal("login"),email:address,password:z.string().min(8).max(128)}),
  z.object({action:z.literal("issue"),email:address}),
  z.object({action:z.literal("verify"),code:z.string().trim().min(16).max(80)}),
  z.object({action:z.literal("request"),email:address}),
@@ -17,6 +20,7 @@ export async function POST(req:Request){
  const parsed=schema.safeParse(await req.json().catch(()=>null));
  if(!parsed.success)return reply({error:"Use your MBA address ending in @london.edu, or request a fresh sign-in link."},400);
  const p=parsed.data,db=env.DB!,now=Date.now();
+ if(p.action==="join"||p.action==="login")return account(p.action,p.email,p.password);
  if(p.action==="issue" || p.action==="request"){
   const manual=p.action==="issue";
   if(manual && (await getChatGPTUser())?.email.toLowerCase()!==adminEmail)return reply({error:"Reviewer access required."},403);

@@ -1,19 +1,20 @@
 "use client";
 import {useState} from "react";
 import {mbaAddress} from "../lib/eligibility";
-export function SignIn(){
- const [email,setEmail]=useState(""),[status,setStatus]=useState(""),[error,setError]=useState("");
- async function request(e:React.FormEvent){
+export function SignIn({done}:{done:()=>Promise<void>}){
+ const [mode,setMode]=useState<"join"|"login">("join"),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ async function submit(e:React.FormEvent<HTMLFormElement>){
   e.preventDefault();setError("");
-  const address=email.trim().toLowerCase();
-  if(!mbaAddress.test(address)){setError("Use an @london.edu address with MBA before the @.");return}
-  setStatus("sending");
+  const form=new FormData(e.currentTarget),email=String(form.get("email")).trim().toLowerCase();
+  if(!mbaAddress.test(email)){setError("Use your @london.edu address with MBA before the @.");return}
+  setBusy(true);
   try{
-   const r=await fetch("/api/access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"request",email:address})});
-   const data=await r.json() as {error?:string,manual?:boolean};
-   if(!r.ok)throw Error(data.error);
-   setStatus(data.manual?"manual":"sent");
-  }catch(e){setStatus("");setError((e as Error).message)}
+   const r=await fetch("/api/access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:mode,email,password:form.get("password")})});
+   if(!r.ok){const body=await r.json() as {error:string};throw Error(body.error)}
+   await done();
+  }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
- return <><h2>Student sign-in</h2>{status==="sent"?<p>Check {email} for your single-use sign-in link.</p>:status==="manual"?<><p>Automatic delivery is awaiting setup. Send a request from {email} and the reviewer will reply with a sign-in link.</p><a className="primary" href={"mailto:mayankprashar.02@gmail.com?subject=Plot%20Twist%20sign-in&body="+encodeURIComponent("Please send a Plot Twist sign-in link to my MBA inbox: "+email+". Reviewer page: "+location.origin+"/approve")}>Email the reviewer ↗</a></>:<form onSubmit={request}><label>MBA email address<input type="email" required autoComplete="email" placeholder="alex.mba27@london.edu" value={email} onChange={e=>setEmail(e.target.value)}/></label><p>Open the link in your LBS inbox to sign in.</p><button className="primary" disabled={status==="sending"}>Request sign-in link ↗</button></form>}{error&&<p role="alert">{error}</p>}</>
+ return <><div className="filters">{(["join","login"] as const).map(key=><button key={key} className={key===mode?"selected":""} onClick={()=>{setMode(key);setError("")}}>{key==="join"?"Create account":"Sign in"}</button>)}</div>
+ <h2>{mode==="join"?"Pick up an alias":"Welcome back"}</h2><p>{mode==="join"?"We’ll give you a unique username for bids and the leaderboard. Your email stays private.":"Sign in to see your bids and handovers."}</p>
+ <form onSubmit={submit}><label>Private MBA email<input type="email" name="email" autoComplete="username" required placeholder="alex.mba27@london.edu"/></label><label>Password<input type="password" name="password" minLength={8} maxLength={128} required autoComplete={mode==="join"?"new-password":"current-password"} placeholder="At least 8 characters"/></label><button className="primary" disabled={busy}>{busy?"One moment…":mode==="join"?"Create my account":"Sign in"}</button></form>{error&&<p role="alert">{error}</p>}</>
 }

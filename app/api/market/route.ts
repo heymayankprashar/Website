@@ -6,11 +6,14 @@ export async function GET(){
  const me=await identity();
  if(!me)return reply({member:false,listings:[],deals:[],sales:[]});
  const db=env.DB!, now=Date.now();
- const [listings,deals,sales]=await db.batch([
- db.prepare("SELECT id,event,tier,deadline,side,price,owner=? AS mine FROM listings WHERE state='open' AND deadline>? ORDER BY deadline").bind(me,now),
+ const [listings,deals,sales,profile,leaders]=await db.batch([
+ db.prepare("SELECT id,event,tier,deadline,side,price,owner=? AS mine,a.username FROM listings LEFT JOIN accounts a ON a.principal=owner WHERE state='open' AND deadline>? ORDER BY deadline").bind(me,now),
  db.prepare("SELECT d.id,d.price,d.state,d.revision,d.wallet,d.buyer=? AS buying,d.author=? AS lastByMe,l.event,l.tier,l.deadline,l.state AS availability FROM deals d JOIN listings l ON l.id=d.listing WHERE buyer=? OR seller=? ORDER BY d.rowid DESC").bind(me,me,me,me),
- db.prepare("SELECT l.event,l.tier,l.deadline,d.price,d.finished FROM deals d JOIN listings l ON l.id=d.listing WHERE d.state='complete' ORDER BY finished DESC")]);
- return reply({member:true,listings:listings.results,deals:deals.results,sales:sales.results});
+ db.prepare("SELECT l.event,l.tier,l.deadline,d.price,d.finished FROM deals d JOIN listings l ON l.id=d.listing WHERE d.state='complete' ORDER BY finished DESC"),
+ db.prepare("SELECT username FROM accounts WHERE principal=?").bind(me),
+ db.prepare("SELECT a.username, COUNT(DISTINCT lower(trim(l.event))) AS events FROM accounts a JOIN deals d ON d.buyer=a.principal JOIN listings l ON l.id=d.listing WHERE d.state='complete' GROUP BY a.username ORDER BY events DESC,a.username LIMIT 100")
+ ]);
+ return reply({member:true,username:(profile.results[0] as {username:string}|undefined)?.username,leaders:leaders.results,listings:listings.results,deals:deals.results,sales:sales.results});
 }
 export async function POST(req:Request){
  const me=await identity();if(!me)return reply({error:"Sign in with your LBS account to trade."},403);

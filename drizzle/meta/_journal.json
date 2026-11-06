@@ -15,6 +15,13 @@
       "when": 1793999944695,
       "tag": "0001_same_kate_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794001533321,
+      "tag": "0002_nappy_moira_mactaggert",
+      "breakpoints": true
     }
   ]
 }
