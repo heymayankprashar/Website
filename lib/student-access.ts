@@ -1,3 +1,4 @@
+import {mbaAddress} from "./eligibility";
 import {env} from "cloudflare:workers";
 import {cookies} from "next/headers";
 export const adminEmail="mayankprashar.02@gmail.com";
@@ -9,5 +10,7 @@ export async function digest(value:string){
 export async function student(){
  const token=(await cookies()).get(cookieName)?.value;
  if(!token)return null;
- return env.DB!.prepare("SELECT email FROM sessions WHERE digest=? AND expires>?").bind(await digest(token),Date.now()).first<string>("email");
+ const email = await env.DB!.prepare("SELECT email FROM sessions WHERE digest=? AND expires>?").bind(await digest(token),Date.now()).first<string>("email");
+ return email && mbaAddress.test(email) ? email : null;
 }
+

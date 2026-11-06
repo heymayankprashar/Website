@@ -4,3 +4,4 @@ declare namespace Cloudflare {
     BUCKET?: R2Bucket;
   }
 }
+declare namespace Cloudflare { interface Env { RESEND_API_KEY?: string; PLOT_TWIST_FROM?: string } }

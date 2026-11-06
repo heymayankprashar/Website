@@ -28,6 +28,14 @@ export async function POST(req:Request){
  if(p.action==="withdraw"){
  const r=await db.prepare("UPDATE listings SET state='withdrawn' WHERE id=? AND owner=? AND state='open'").bind(p.id,me).run();return r.meta.changes?reply({ok:true}):stale()
  }
+ if(p.action==="match"){
+  const id=crypto.randomUUID();
+  const [created]=await db.batch([
+   db.prepare("INSERT INTO deals(id,listing,buyer,seller,author,price,state) SELECT ?,id,CASE WHEN side='sell' THEN ? ELSE owner END,CASE WHEN side='buy' THEN ? ELSE owner END,?,price,'reserved' FROM listings WHERE id=? AND owner<>? AND state='open' AND deadline>? AND price=?").bind(id,me,me,me,p.id,me,now,cents),
+   db.prepare("UPDATE listings SET state='reserved' WHERE id=(SELECT listing FROM deals WHERE id=?)").bind(id)
+  ]);
+  return created.meta.changes?reply({ok:true}):stale();
+ }
  if(p.action==="offer"&&valid){
  const r=await db.prepare("INSERT INTO deals(id,listing,buyer,seller,author,price,state) SELECT ?,id,CASE WHEN side='sell' THEN ? ELSE owner END,CASE WHEN side='buy' THEN ? ELSE owner END,?,?,'pending' FROM listings WHERE id=? AND owner<>? AND state='open' AND deadline>? AND NOT EXISTS(SELECT 1 FROM deals WHERE listing=listings.id AND (buyer=? OR seller=?) AND state='pending')").bind(crypto.randomUUID(),me,me,me,cents,p.id,me,now,me,me).run();return r.meta.changes?reply({ok:true}):stale()
  }
