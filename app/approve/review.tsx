@@ -1,0 +1,6 @@
+"use client";
+import {useState} from "react";
+export default function Approvals(){
+ const [email,E]=useState(""),[code,C]=useState(""),[error,S]=useState(""),[busy,B]=useState(false);
+ return <article><p>Enter the student’s LBS address. Send the approval code directly to that mailbox. Codes expire after 24 hours and work once.</p><form onSubmit={async e=>{e.preventDefault();B(true);C("");S("");try{const r=await fetch("/api/access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"issue",email})});const j=await r.json() as {error?:string,code?:string};if(!r.ok)throw Error(j.error);C(j.code!)}catch(e){S((e as Error).message)}finally{B(false)}}}><input type="email" required value={email} onChange={e=>{E(e.target.value);C("")}} aria-label="LBS email" placeholder="Student’s @london.edu email"/><button disabled={busy}>Generate approval code</button></form>{code&&<><p>{code}</p><a href={"mailto:"+encodeURIComponent(email)+"?subject=Your%20Ticket%20Common%20code&body="+encodeURIComponent("Your single-use code for "+location.origin+" is "+code+". Enter it under Student sign-in within 24 hours.")}>Email code to {email} ↗</a></>}{error&&<p role="alert">{error}</p>}</article>
+}
