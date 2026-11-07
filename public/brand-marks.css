@@ -1,0 +1,7 @@
+.twistMark,.hostArrow{position:relative;display:inline-block;flex:none;font-style:normal}
+.twistMark{width:.57em;height:.57em;margin-left:.13em;vertical-align:.26em;color:#dbf477;background:linear-gradient(currentColor,currentColor) center/14% 100% no-repeat,linear-gradient(currentColor,currentColor) center/100% 14% no-repeat}
+.twistMark::before{content:"";position:absolute;inset:0;background:inherit;transform:rotate(45deg)}
+.hostArrow{width:14px;height:14px;margin-left:7px;vertical-align:-1px}
+.hostArrow::before,.hostArrow::after{content:"";position:absolute}
+.hostArrow::before{inset:6px 0 auto;height:1.8px;background:currentColor;transform:rotate(-45deg)}
+.hostArrow::after{width:8px;height:8px;right:1px;top:1px;border-top:2px solid;border-right:2px solid}
