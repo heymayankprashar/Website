@@ -1,3 +1,4 @@
+import {catalog} from "../../../lib/catalog";
 import {initialEvents} from "../../../lib/event-info";
 import {env} from "cloudflare:workers";
 import { z } from "zod";
@@ -33,6 +34,10 @@ function eventId(input: string) {
 const fail=(error:string,status:number)=>Response.json({error},{status});
 export async function GET(request:Request) {
   const input=new URL(request.url).searchParams.get("url")??"";
+  if(/^\/events\/hp-[a-f0-9-]{36}$/.test(input)){
+    const e=(await catalog()).find(row=>row.id===input.slice(8));
+    return e&&Date.parse(e.startDate)>Date.now()?Response.json(e):fail("Ticket sales have closed.",410);
+  }
   const pf=/^https:\/\/partiful\.com\/e\/([A-Za-z0-9_-]{1,80})\/?(?:[?#].*)?$/.exec(input);
   if(pf){
     const id="pf-"+pf[1];

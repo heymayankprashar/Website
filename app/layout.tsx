@@ -1,4 +1,5 @@
+import {Inbox} from "./inbox";
 import {Conversation} from "./community";
 import "./globals.css";
 export const metadata={title:"Plot Twist · LBS ticket exchange",icons:{icon:"/favicon.svg"},description:"A student-to-student ticket exchange for London Business School."};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}<footer className="suggestFooter"><details><summary>Share a suggestion</summary><Conversation/></details></footer></body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}<footer className="suggestFooter"><details><summary>Share a suggestion</summary><Conversation/></details></footer><Inbox/></body></html>}

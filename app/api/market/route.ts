@@ -11,8 +11,11 @@ export async function GET(){
  const stats=(await db.prepare(`SELECT l.event, count(*) AS trades,
   (SELECT x.price FROM deals x JOIN listings y ON y.id=x.listing WHERE x.state='complete' AND lower(trim(y.event))=lower(trim(l.event)) ORDER BY x.finished DESC,x.rowid DESC LIMIT 1) AS last
   FROM deals d JOIN listings l ON l.id=d.listing WHERE d.state='complete' GROUP BY lower(trim(l.event)) ORDER BY trades DESC,max(d.finished) DESC`).all()).results;
- const hot=stats.reduce((total,row)=>total+Number(row.trades),0)>=10?stats[0]:null;
  const events=await catalog();
+ const activeNames=new Set(events.map(e=>e.name.toLowerCase()));
+ const manual=await db.prepare("SELECT DISTINCT lower(trim(event)) name FROM listings WHERE eventId IS NULL AND deadline>?").bind(now).all<{name:string}>();
+ for(const row of manual.results)activeNames.add(row.name);
+ const hot=stats.reduce((total,row)=>total+Number(row.trades),0)>=10?stats.find(row=>activeNames.has(String(row.event).toLowerCase()))??null:null;
  if(!me)return reply({events,member:false,listings:[],deals:[],sales:[],stats,hot});
  const [listings,deals,sales,profile,leaders,messages]=await db.batch([
  db.prepare("SELECT id,eventId,event,tier,deadline,side,price,owner=? AS mine,a.username FROM listings LEFT JOIN accounts a ON a.principal=owner WHERE state='open' AND deadline>? ORDER BY deadline").bind(me,now),
@@ -27,7 +30,7 @@ export async function GET(){
 export async function POST(req:Request){
  const me=await identity();
  if(req.headers.get("origin")!==new URL(req.url).origin)return reply({error:"Invalid origin"},403);
- const input=z.object({eventId:z.string().regex(/^(?:\d{1,12}|pf-[A-Za-z0-9_-]{1,80})$/).optional(),action:z.string(),price:z.union([z.string(),z.number()]).optional(),event:z.string().default(""),tier:z.string().default(""),side:z.string().default(""),deadline:z.number().default(0),id:z.string().default(""),revision:z.number().int().default(-1),wallet:z.string().default(""),issue:z.string().default("")}).safeParse(await req.json().catch(()=>null));
+ const input=z.object({eventId:z.string().regex(/^(?:\d{1,12}|hp-[a-f0-9-]{36}|pf-[A-Za-z0-9_-]{1,80})$/).optional(),action:z.string(),price:z.union([z.string(),z.number()]).optional(),event:z.string().default(""),tier:z.string().default(""),side:z.string().default(""),deadline:z.number().default(0),id:z.string().default(""),revision:z.number().int().default(-1),wallet:z.string().default(""),issue:z.string().default("")}).safeParse(await req.json().catch(()=>null));
  if(!input.success)return reply({error:"Invalid request."},400);
  const p=input.data, db=env.DB!, now=Date.now(), cents=Math.round(Number(p.price)*100);
  if(p.action==="feedback" && p.issue.trim() && p.issue.length<=1000){
@@ -44,14 +47,14 @@ export async function POST(req:Request){
  const stale=()=>reply({error:"This offer has changed or expired. Refresh and try again."},409);
  if(p.action==="watch" && me){
  const e=(await catalog()).find(x=>x.id===p.eventId);
- if(!e||!p.tier.trim()||!Number.isSafeInteger(cents)||cents<0||cents>1000000)return reply({error:"Invalid watch"},400);
+ if(!e||Date.parse(e.startDate)<=now||!p.tier.trim()||!Number.isSafeInteger(cents)||cents<0||cents>1000000)return reply({error:"Invalid watch"},400);
  await db.prepare("INSERT OR REPLACE INTO watches(id,owner,eventId,tier,price) VALUES(?,?,?,?,?)").bind(JSON.stringify([me,e.id,p.tier]),me,e.id,p.tier,cents).run();
  return reply({ok:true});
  }
  if(p.action==="list"){
  if(!str(p.event,90)||!str(p.tier,50)||!Number.isSafeInteger(p.deadline)||p.deadline<=now||!["buy","sell"].includes(p.side)||!valid)return reply({error:"Check the event, price and transfer deadline."},400);
  const known=(await catalog()).find(e=>e.id===(p.eventId??(p.event.trim().toLowerCase()==="afro party"?"44213":"")));
- if(p.eventId && (!known||known.name!==p.event.trim()))return reply({error:"Refresh the event and try again."},409);
+ if(p.eventId && (!known||known.name!==p.event.trim()||p.deadline>Date.parse(known.startDate)))return reply({error:"Refresh the event and try again."},409);
  const eventId=known?.id??null;
  const ticket=crypto.randomUUID(),trade=crypto.randomUUID(),buying=p.side==="buy";
  const compatible=buying?"price<=? ORDER BY price ASC,rowid":"price>=? ORDER BY price DESC,rowid";

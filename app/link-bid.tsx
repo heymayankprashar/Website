@@ -29,7 +29,7 @@ export function LinkBid({busy,post,manual,side,listings,initialUrl}:Props){
   },300);
   return ()=>{clearTimeout(timer);controller.abort()};
  },[url]);
- return <><h2>{buying?"Post a buyer bid":"List a ticket for sale"}</h2><label>CampusGroups or Partiful link<input type="url" autoFocus value={url} placeholder="Paste the event link" onChange={e=>{setEvent(null);setError("");setLoading(false);setUrl(e.target.value)}}/></label>
+ return <><h2>{buying?"Post a buyer bid":"List a ticket for sale"}</h2>{!initialUrl?.startsWith("/events/hp-")&&<label>CampusGroups or Partiful link<input type="url" autoFocus value={url} placeholder="Paste the event link" onChange={e=>{setEvent(null);setError("");setLoading(false);setUrl(e.target.value)}}/></label>}
  {loading&&<p role="status">Looking up the event…</p>}{error&&<p role="alert">{error}</p>}
  {event&&<form key={event.name+event.startDate} onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void post({event:event.name,eventId:event.id,side,tier:form.get("tier"),price:form.get("price"),deadline:Date.parse(event.startDate)})}}>
  <div><h3>{event.name}</h3><p>{event.venue}</p></div>

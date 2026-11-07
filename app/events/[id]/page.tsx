@@ -16,8 +16,8 @@ export default async function EventPage({params}:{params:Promise<{id:string}>}){
  <div className="eventInfo"><h1>{e.name}</h1>
  <p><time dateTime={e.startDate}>{start.toLocaleDateString("en-GB",{timeZone:"Europe/London",weekday:"short",day:"numeric",month:"long",year:"numeric"})} · {start.toLocaleTimeString("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit"})} London time</time></p>
  {e.venue&&<p>{e.venue}</p>}{id==="pf-C825B7GCrs25QDCdpgxg"&&<p>The invitation lists 24 November in the calendar and 25 November in the description. Confirm the date with the host. Orders close on 24 November at 20:00.</p>}
- <a className="organizerLink" href={source(id)}>View on {id.startsWith("pf-")?"Partiful":"CampusGroups"} ↗</a>
+ {e.description&&<p style={{whiteSpace:"pre-line"}}>{e.description}</p>}{!id.startsWith("hp-")&&<a className="organizerLink" href={source(id)}>View on {id.startsWith("pf-")?"Partiful":"CampusGroups"} ↗</a>}
  {e.tiers.length>0&&<dl className="eventTiers"><dt>Face value</dt>{e.tiers.map(t=><dd key={t.name}>{t.name}{t.price&&<b>{new Intl.NumberFormat("en-GB",{style:"currency",currency:t.price.currency,maximumFractionDigits:2,minimumFractionDigits:0}).format(t.price.amount)}</b>}</dd>)}</dl>}
- <div className="eventActions"><a href={"/?order=buy&id="+id}>Place a bid</a><a href={"/?order=sell&id="+id}>Sell a ticket</a></div>
- <p>{counts?.total? (counts.timely??0)+" of "+counts.total+" matched tickets were confirmed before the event.":"No matched tickets yet."}</p></div></section><Watch id={id} tiers={e.tiers.map(t=>t.name)}/></main>
+ {start.getTime()>Date.now()?<div className="eventActions"><a href={"/?order=buy&id="+id}>Place a bid</a><a href={"/?order=sell&id="+id}>Sell a ticket</a></div>:<p>Ticket sales have closed.</p>}
+ <p>{counts?.total? (counts.timely??0)+" of "+counts.total+" matched tickets were confirmed before the event.":"No matched tickets yet."}</p></div></section>{start.getTime()>Date.now()&&<Watch id={id} tiers={e.tiers.map(t=>t.name)}/>}</main>
 }
