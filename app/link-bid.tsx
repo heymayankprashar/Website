@@ -1,13 +1,13 @@
 "use client";
 import {useEffect,useState} from "react";
 
-type ImportedEvent={name:string,startDate:string,venue?:string,tiers:{name:string,price:{amount:number,currency:string}|null}[]};
-type Props={side:string,listings:{event:string,tier:string,side:string,price:number,mine?:number}[],busy:boolean,post:(values:Record<string,unknown>)=>Promise<void>,manual:()=>void};
+type ImportedEvent={id:string,name:string,startDate:string,venue?:string,tiers:{name:string,price:{amount:number,currency:string}|null}[]};
+type Props={initialUrl?:string,side:string,listings:{event:string,tier:string,side:string,price:number,mine?:number}[],busy:boolean,post:(values:Record<string,unknown>)=>Promise<void>,manual:()=>void};
 
-export function LinkBid({busy,post,manual,side,listings}:Props){
+export function LinkBid({busy,post,manual,side,listings,initialUrl}:Props){
  const [tier,setTier]=useState(""),[amount,setAmount]=useState("");
  const buying=side==="buy";
- const [url,setUrl]=useState(""),[event,setEvent]=useState<ImportedEvent|null>(null);
+ const [url,setUrl]=useState(initialUrl??""),[event,setEvent]=useState<ImportedEvent|null>(null);
  const [error,setError]=useState(""),[loading,setLoading]=useState(false);
  const opposing=listings.filter(l=>eventMatches(l)&&!l.mine&&l.side!==side).map(l=>l.price);
  function eventMatches(l:Props["listings"][number]){return !!event&&l.event.toLowerCase()===event.name.toLowerCase()&&l.tier.toLowerCase()===tier.toLowerCase()}
@@ -29,9 +29,9 @@ export function LinkBid({busy,post,manual,side,listings}:Props){
   },300);
   return ()=>{clearTimeout(timer);controller.abort()};
  },[url]);
- return <><h2>{buying?"Post a buyer bid":"List a ticket for sale"}</h2><label>CampusGroups event link<input type="url" autoFocus value={url} placeholder="Paste the LBS event link" onChange={e=>{setEvent(null);setError("");setLoading(false);setUrl(e.target.value)}}/></label>
+ return <><h2>{buying?"Post a buyer bid":"List a ticket for sale"}</h2><label>CampusGroups or Partiful link<input type="url" autoFocus value={url} placeholder="Paste the event link" onChange={e=>{setEvent(null);setError("");setLoading(false);setUrl(e.target.value)}}/></label>
  {loading&&<p role="status">Looking up the event…</p>}{error&&<p role="alert">{error}</p>}
- {event&&<form key={event.name+event.startDate} onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void post({event:event.name,side,tier:form.get("tier"),price:form.get("price"),deadline:Date.parse(event.startDate)})}}>
+ {event&&<form key={event.name+event.startDate} onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void post({event:event.name,eventId:event.id,side,tier:form.get("tier"),price:form.get("price"),deadline:Date.parse(event.startDate)})}}>
  <div><h3>{event.name}</h3><p>{event.venue}</p></div>
  <label>Ticket type{event.tiers.length?<select name="tier" value={tier} onChange={e=>setTier(e.target.value)}>{event.tiers.map(t=><option key={t.name} value={t.name}>{t.name}{t.price?" · face value "+new Intl.NumberFormat("en-GB",{style:"currency",currency:t.price.currency}).format(t.price.amount):""}</option>)}</select>:<input name="tier" value={tier} onChange={e=>setTier(e.target.value)} maxLength={50} required/>}</label>
  <label>{buying?"Your bid (£)":"Your asking price (£)"}<input name="price" value={amount} onChange={e=>setAmount(e.target.value)} type="number" min="0" max="10000" step=".01" required/></label>
