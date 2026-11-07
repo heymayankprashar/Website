@@ -1,0 +1,26 @@
+main.hostPage{max-width:760px;padding:22px clamp(16px,4vw,36px) 72px}
+.hostingNav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.hostingNav strong{font:italic bold 25px/1 Georgia,serif;letter-spacing:-1.6px;color:#34273b}
+.hostingNav a{display:inline-flex;gap:9px;align-items:center;min-height:44px;padding:0 15px;border:1px solid #d4cad5;border-radius:24px;text-decoration:none;font-size:14px;font-weight:650}
+.hostingBanner{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;background:#34273b;color:#fff9ee;padding:clamp(24px,5vw,42px);margin-bottom:16px}
+.hostingBanner:after{content:"";position:absolute;z-index:-1;width:62%;height:230%;right:-23%;top:-65%;border-radius:50%;background:repeating-radial-gradient(ellipse,#876984 0 2px,transparent 3px 12px);transform:rotate(-24deg);opacity:.65}
+.hostPage .hostingBanner h1{margin:0;font-size:clamp(36px,7vw,60px);letter-spacing:-.05em;line-height:1.04}
+.hostingBanner em{color:#ead9a4}
+.hostAccount,.hostPage .hostForm{background:#fffdf9;border:1px solid #dcd3db;border-radius:16px;padding:clamp(18px,4vw,32px)}
+.hostAccount .filters{display:inline-flex;gap:4px;padding:4px;border-radius:28px;background:#eee9ed;margin:0 0 20px}
+.hostAccount .filters button{min-height:40px;border:0;background:transparent}
+.hostAccount .filters .selected{background:#382b41;color:white}
+.hostAccount h2{font-size:clamp(28px,5vw,38px);margin:0}
+.hostAccount p{line-height:1.5;margin:8px 0 20px;color:#584c59}
+.hostAccount form,.hostPage fieldset{display:grid;gap:16px}
+.hostAccount form label,.hostForm fieldset label{display:grid;gap:7px;font-size:14px;font-weight:650}
+.hostAccount input,.hostForm input,.hostForm textarea{width:100%;min-width:0;font-size:16px;font-weight:400;border:1px solid #cbbfcb;background:white}
+.hostAccount form button,.hostForm>button{width:100%;min-height:46px;margin:0}
+.hostPage .hostForm{gap:24px}
+.hostForm fieldset{min-width:0;margin:0;border:0;border-bottom:1px dashed #d3c8d2;padding:0 0 20px}
+.hostForm legend{padding:0;margin-bottom:16px;font:normal 26px Georgia,serif;letter-spacing:-.7px}
+.hostForm small{margin-top:-9px;color:#635865}
+.hostForm input[type=file]::file-selector-button{background:#efe8f1;border:0;border-radius:6px;padding:8px 10px;color:#382b41;margin-right:10px;cursor:pointer}
+.hostPage :focus-visible{outline:3px solid #856192;outline-offset:2px}
+.hostPage:has(~ .msgDock) .hostForm>button{scroll-margin-bottom:80px}
+@media(max-width:440px){.hostPage .ticketFields{grid-template-columns:1fr}.hostingBanner em{display:block}.hostingNav strong{font-size:23px}}
