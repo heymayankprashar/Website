@@ -8,8 +8,8 @@ export const initialEvents:EventInfo[]=[
 
 export const source=(id:string)=>id.startsWith("hp-")?"/events/"+id:id.startsWith("pf-")?"https://partiful.com/e/"+id.slice(3):"https://e.cglink.me/2ka/r"+id;
 
-export function eventCategory(name:string,id=""){
- if(id.startsWith("hp-"))return "House parties";
+export function eventCategory(name:string,id?:string|null){
+ if(id?.startsWith("hp-"))return "House parties";
  if(/conference|summit|forum|symposium/i.test(name))return "Conferences";
  if(/party|club night|ball\b|nightlife|disco/i.test(name))return "Parties";
  if(/dinner|thanksgiving|brunch|lunch|supper|tasting/i.test(name))return "Food & drink";

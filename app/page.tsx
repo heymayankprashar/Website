@@ -6,7 +6,7 @@ import {LinkBid} from "./link-bid";
 import {SignIn} from "./sign-in";
 import {PriceChart} from "./price-chart";
 import {useEffect,useState} from "react";
-type Listing={eventId?:string,id:string,event:string,tier:string,price:number,side:string,deadline:number,mine?:number,username?:string};
+type Listing={eventId?:string|null,id:string,event:string,tier:string,price:number,side:string,deadline:number,mine?:number,username?:string};
 type Deal={paid:number,requestedByMe:number,cancelling:number,id:string,event:string,tier:string,price:number,state:string,revision:number,buying:number,lastByMe:number,wallet?:string,deadline:number,availability:string};
 type Sale={event:string,tier:string,price:number,finished:number,deadline:number};
 type Stats={event:string,trades:number,last:number};
@@ -70,7 +70,7 @@ export default function Home(){
  function open(name:string,l:Listing|null=null){if(name==="featured"){const url=new URL(location.href);url.searchParams.set("event","afro-party");window.history.pushState(null,"",url)}else if(name==="detail"&&l){const url=new URL(location.href);url.searchParams.set("event",l.id);window.history.pushState(null,"",url)}else clearEvent();I(l);M(name);P(l?String(l.price/100):"");E("")}
  async function act(action:string,data:Record<string,unknown>){if(busy)return;B(true);E("");try{const r=await fetch("/api/market",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...data})});const j=await r.json() as {error?:string,matched?:boolean};if(!r.ok)throw Error(j.error);await refresh();clearEvent();M("");if(j.matched||action==="offer"||action==="match")T("My trades")}catch(e){E((e as Error).message)}finally{B(false)}}
  const [category,C]=useState("All categories");
- const inCategory=(name:string,id?:string)=>category==="All categories"||category===eventCategory(name,id);
+ const inCategory=(name:string,id?:string|null)=>category==="All categories"||category===eventCategory(name,id);
  const activeCatalog=(m.events??initialEvents).filter(stillOnBoard);
  const categories=Array.from(new Set([...activeCatalog.map(e=>eventCategory(e.name,e.id)),...rows.map(l=>eventCategory(l.event,l.eventId))]));
  const visible=rows.filter(l=>inCategory(l.event,l.eventId)).filter(l=>(filter==="All tickets"||l.side===(filter==="For sale"?"sell":"buy"))&&l.event.toLowerCase().includes(query.toLowerCase()));
