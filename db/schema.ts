@@ -10,3 +10,9 @@ export const sessions=sqliteTable("sessions",{digest:text().primaryKey(),email:t
 export const accounts=sqliteTable("accounts",{
  email:text().primaryKey(), principal:text().notNull().unique(), username:text().notNull().unique(), salt:text().notNull(), passwordHash:text().notNull()
 });
+export const messages=sqliteTable("messages",{
+ id:text().primaryKey(), deal:text().notNull(), sender:text().notNull(), body:text().notNull(), created:integer().notNull()
+});
+export const feedback=sqliteTable("feedback",{
+ id:text().primaryKey(), body:text().notNull(), created:integer().notNull()
+});
